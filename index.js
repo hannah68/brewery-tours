@@ -53,28 +53,29 @@ const emptyCity = () => {
   form.innerHTML = '';
 }
 // repeated city filter
-const cityFormUpdate = (state) => {
+const cityFormUpdate = (stateUpdate) => {
   const cityForm = document.querySelector('#filter-by-city-form');
-  for(let i=0; i<state.cities.length; i++){
+  for(let i=0; i<stateUpdate.cities.length; i++){
     const input = document.createElement('input');
     const label = document.createElement('label');
-    label.innerText = state.cities[i];
-    label.setAttribute('for', state.cities[i]);
+    label.innerText = stateUpdate.cities[i];
+    label.setAttribute('for', stateUpdate.cities[i]);
     let inputObj ={
       type: 'checkbox',
-      name: state.cities[i],
-      value: state.cities[i]
+      name: stateUpdate.cities[i],
+      value: stateUpdate.cities[i]
     }
     setAttributesFn(input,inputObj);
     cityForm.append(input,label);
   }
+  return cityForm
 }
 
 
 // repeated function list
-const listUpdate = (state) => {
+const listUpdate = (stateUpdate) => {
   const listContainer = document.querySelector('.breweries-list');
-  listContainer.innerHTML = state.breweries.map(eachBrew => 
+  listContainer.innerHTML = stateUpdate.breweries.map(eachBrew => 
     `<li>
       <h2>${eachBrew.name}</h2>
       <div class="type">${eachBrew.brewery_type}</div>
@@ -92,7 +93,6 @@ const listUpdate = (state) => {
         </section>
       </li>
   `).join('');
-  cityFormUpdate(state);
 }
 
 
@@ -160,7 +160,6 @@ const titleDisplay = (main) =>{
 }
 
 
-
 const breweryListHeader = () => {
   const main = document.querySelector('main');
   const h1 = document.createElement('h1');
@@ -182,17 +181,128 @@ const breweryListHeader = () => {
   titleDisplay(main);
 }
 
+const renderFn = () => {
+  breweryListHeader();
+}
+
+// get user search value
+const getSearchValue = (stateUpdate) => {
+  const searchForm = document.querySelector('#search-breweries-form');
+  const searchInput = searchForm.querySelector('#search-breweries');
+  searchForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    searchInput.addEventListener('keyup', e => {
+      emptyList();
+      if(e.key === "Enter"){
+        const value = e.target.value.toLowerCase();
+        const filteredSearch = stateUpdate.breweries.filter(eachBrew => {
+          if(eachBrew.city.toLowerCase() === value || eachBrew.name.toLowerCase() === value){
+            return eachBrew
+          }
+        })
+        let newState = {
+          breweries: filteredSearch, 
+        };
+        listUpdate(newState);
+      }
+    })
+  })
+}
+  
+// clear all filters==================================
+const clearFilter = (stateUpdate,target) => {
+  const clearBtn = document.querySelector('.clear-all-btn');
+  clearBtn.addEventListener('click', (e) => {
+    if(target){
+      target.checked = false;
+    }
+    listUpdate(stateUpdate)
+  })
+}
+
+
+
+
+let array =[]
+// filter by city =====================================
+const filterByCity = (valueCity,stateUpdate,target) => {
+  stateUpdate.breweries.filter(brewType => {
+    if(brewType.city === valueCity){
+      return array.push(brewType)
+    }
+  })
+  let newState = {
+    breweries: array, 
+  };
+  listUpdate(newState);
+  clearFilter(stateUpdate,target);
+}
+
+
+
+// listen to filter by city
+const listenToFilterByCity = (stateUpdate) => {
+  var checkboxes = document.querySelectorAll("input[type=checkbox]");
+  checkboxes.forEach(checkbox => {
+    checkbox.addEventListener('change', (e) => {
+      if (e.target.checked) {
+        let target = e.target;
+        let valueCity = e.target.value;
+        filterByCity(valueCity,stateUpdate,target);
+      }
+    });
+  })
+}
+
+
+// filter by type data=====================================
+const filterByType = (valueType,stateUpdate) => {
+  const brewTypeFilter = stateUpdate.breweries.filter(brewType => {
+    if(brewType.brewery_type === valueType){
+      return brewType
+    }
+  })
+  let newState = {
+    breweries: brewTypeFilter, 
+  };
+  listUpdate(newState);
+  clearFilter(stateUpdate);
+}
+
+// listen to filter by type========================
+const listenToFilterByType = (stateUpdate) => {
+  const selectType = document.getElementById('filter-by-type');
+  selectType.addEventListener('change',e => {
+    emptyList();
+    let valueType = e.target.value;
+    filterByType(valueType,stateUpdate);
+  });
+}
 
 
 // update state======================================
-const updatedState = (newState,value) => {
-  state = {...state,...newState };
+const updatedState = (newState,state) => {
+  state = {...state, ...newState};
   console.log('updated state:', state);
-  // renderFn(state,value);
-  breweryListHeader();
-  listUpdate(state);
-  cityFormUpdate(state);
-  // emptyMain()
+  const main = document.querySelector('main');
+  if(main.innerHTML !== ''){
+    emptyMain();
+    renderFn();
+    listUpdate(state);
+    cityFormUpdate(state);
+    listenToFilterByType(state)
+    listenToFilterByCity(state)
+    getSearchValue(state)
+    
+  }else{
+    renderFn();
+    listUpdate(state);
+    cityFormUpdate(state);
+    listenToFilterByType(state)
+    listenToFilterByCity(state)
+    getSearchValue(state)
+  }
+  
 }
 
 // create new state==================================
@@ -201,7 +311,12 @@ const createNewState = (breweryArr,value,cities) =>{
     selectStateInput: value,
     breweries: breweryArr,
     cities: cities,
-    brewTypes: brewType
+    brewTypes: brewType,
+    filters: {
+      type: "",
+      city: [],
+      search: ""
+    }
   };
   updatedState(newState,value);
 }
@@ -226,17 +341,17 @@ const createBreweryArr = (data, value) => {
 
 // get data from API===============================
 const fetchDataForUser = (value) => {
-  userInput.value = '';
   fetch(`https://api.openbrewerydb.org/breweries?by_state=${value}`)
     .then(res => res.json())
     .then(data => {
       console.log('all data:', data);
-      createBreweryArr(data, value);
-    })
+      createBreweryArr(data, value)
+    });
 }
 
 // Get user input================================
 const getUserInput = () => {
+  userInput.value = '';
   const form = document.querySelector('#select-state-form');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -244,256 +359,15 @@ const getUserInput = () => {
       if(e.key === "Enter"){
         const value = e.target.value.toLowerCase();
         fetchDataForUser(value);
-        emptyMain()
-        
       }
     })
   })
 }
 
+
 // init app===================
 const init = () => {
-  
   getUserInput();
 }
 init();
-
-console.log(state);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// render function===============================
-// const renderFn = (state,value) => {
-//   createListSectionDisplay(state,value);
-//   createFilterDisplay(state);
-// }
-
-
-
-
-// // Display list section============================
-// const createListSectionDisplay = (state) => {
-//   const main = document.querySelector('main');
-//   const article = document.createElement('article');
-//   main.appendChild(article);
-//   const breweriesList = document.createElement('ul');
-//   breweriesList.classList.add('breweries-list');
-//   article.appendChild(breweriesList);
-
-//   meyfn(breweriesList,state)
-  
-//   breweriesList.innerHTML = state.breweries.map(eachBrew => 
-//     `<li>
-//       <h2>${eachBrew.name}</h2>
-//       <div class="type">${eachBrew.brewery_type}</div>
-//       <section class="address">
-//           <h3>Address:</h3>
-//           <p>${eachBrew.street}</p>
-//           <p><strong>${eachBrew.city}, ${eachBrew.postal_code}</strong></p>
-//         </section>
-//         <section class="phone">
-//           <h3>Phone:</h3>
-//           <p>${eachBrew.phone ? '+' + eachBrew.phone : '-'}</p>
-//         </section>
-//         <section class="link">
-//           <a href="${eachBrew.website_url}" target="_blank">Visit Website</a>
-//         </section>
-//       </li>
-//   `).join('');
-// }
-
-// // set attributes function=================
-// const setAttributesFn = (el, attrs) => {
-//   for(var key in attrs) {
-//     el.setAttribute(key, attrs[key]);
-//     }
-// }
-
-// // Display title===================
-// const titleDisplay = () =>{
-//   const title = document.createElement('h2');
-//   title.innerText = 'Filter By:';
-//   return title;
-// }
-
-// // Display filter form===============
-// const filterFormDisplay = (state) => {
-//   const form = document.createElement('form');
-//   let formObj = {
-//     id: 'filter-by-type-form',
-//     autocompete: 'off'
-//   }
-//   setAttributesFn(form,formObj);
-//   // create label
-//   const label = document.createElement('label');
-//   label.setAttribute('for', 'filter-by-type');
-//   // create h3
-//   const brewTitle = document.createElement('h3');
-//   brewTitle.innerText = 'Type of Brewery';
-//   label.appendChild(brewTitle);
-//   // create select
-//   const select = document.createElement('select');
-//   let selectObj = {
-//     id: 'filter-by-type',
-//     name: 'filter-by-type'
-//   }
-//   setAttributesFn(select,selectObj);
-//   // create options
-//   const firstOption = document.createElement('option');
-//   firstOption.innerText = 'Select a type...';
-//   let optionObj = {
-//     value: 'default',
-//     selected : 'true'
-//   }
-//   setAttributesFn(firstOption,optionObj);
-//   select.innerHTML = state.brewTypes.map(type =>
-//     `<option value="${type}">${type}</option>`
-//   ).join('');
-//   select.insertAdjacentElement("afterbegin", firstOption);
-//   form.append(label,select);
-//   return form;
-// }
-
-// // Display filter header==================
-// const cityHeaderDisplay = () => {
-//   const filterCityDiv = document.createElement('div');
-//   filterCityDiv.classList.add('filter-by-city-heading');
-//   const cityTitle = document.createElement('h3');
-//   cityTitle.innerText = 'Cities'
-//   const clearBtn = document.createElement('button');
-//   clearBtn.classList.add('clear-all-btn');
-//   clearBtn.innerText = 'clear all';
-//   filterCityDiv.append(cityTitle,clearBtn);
-//   return filterCityDiv
-// }
-
-// // Display Form of filter by city=================
-// const filterByCityFormDisplay = (state) => {
-//   const cityForm = document.createElement('form');
-//   cityForm.setAttribute('id', 'filter-by-city-form');
-//   for(let i=0; i<state.cities.length; i++){
-//     const input = document.createElement('input');
-//     const label = document.createElement('label');
-//     label.innerText = state.cities[i];
-//     label.setAttribute('for', state.cities[i]);
-//     let inputObj ={
-//       type: 'checkbox',
-//       name: state.cities[i],
-//       value: state.cities[i]
-//     }
-//     setAttributesFn(input,inputObj);
-//     cityForm.append(input,label);
-//   }
-//   return cityForm;
-// }
-
-
-// // filter by type data==================================
-// const filterByTypeData = (allData,userValue,type) => {
-//   const filteredArr = allData.filter(data => {
-//     if(data.state){
-//       if(data.state.toLowerCase() === userValue){
-//         return data
-//       }
-//     }
-    
-//   })
-//   const cit = filteredArr.map(brew => {
-//     return brew.city
-//   });
-  
-//   let newState = {
-//     selectStateInput: userValue,
-//     breweries: filteredArr,
-//     cities: cit,
-//     filters: {
-//       type: type,
-//     }
-//   };
-//   updatedState(newState,userValue);
-// }
-
-
-// // fetch data by type====================================
-// const fetchByType = (type,state) => {
-//   let userValue = state.selectStateInput;
-//   fetch(`https://api.openbrewerydb.org/breweries?by_type=${type}`)
-//     .then(res => res.json())
-//     .then(allData => {
-//       console.log(allData);
-//       filterByTypeData(allData,userValue,type);
-//     })
-// }
-
-// // listen to filter by type========================
-// const listenToFilterByType = (state) => {
-//   const selectType = document.getElementById('filter-by-type');
-//   selectType.addEventListener('change',e => {
-//     emptyList();
-//     emptyCity();
-//     let valueType = e.target.value;
-//     fetchByType(valueType,state);
-//   });
-// }
-
-
-// // create Filter Display=============================
-// const createFilterDisplay = (state) => {
-//   const main = document.querySelector('main');
-//   const aside = document.createElement('aside');
-//   aside.classList.add('filters-section');
-//   main.appendChild(aside);
-//   aside.append(titleDisplay(),filterFormDisplay(state),cityHeaderDisplay(),filterByCityFormDisplay(state));
-
-//   // listen to filter by type
-//   listenToFilterByType(state);
-// }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
