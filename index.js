@@ -1,18 +1,3 @@
-// - The list has a maximum of 10 breweries on display
-// - From the 'filter by city' section, a user can clear all filters
-// - From the 'search' section, a user can search for breweries by:
-// - Name
-// - City
-
-// Instructions
-// - Think about which request type to use
-// - Create action functions that update state
-// - Create render functions that read from state
-// Tips
-// - Use a cleanData function to modify the data in the fetch request before adding it to state
-// - Use an extractCitiesData function to extract the cities from the data in the fetch request and add it to state for the 'filter by city' section
-// - For filter by type use a select element to capture user input
-// - For filter by city use a list of checkbox elements to capture user input
 let state = {
   selectStateInput: "",
   breweries: [],
@@ -31,10 +16,8 @@ let brewType = ['micro','brewpub','regional'];
 // empty main display======================
 const emptyMain = () => {
   const main = document.querySelector('main');
-  
   main.innerHTML = '';
 }
-
 
 // empty list display======================
 const emptyList = () => {
@@ -46,12 +29,6 @@ const emptyList = () => {
   }
 }
 
-// empty list display=====================
-const emptyCity = () => {
-  const form = document.querySelector('#filter-by-city-form');
-  
-  form.innerHTML = '';
-}
 // repeated city filter
 const cityFormUpdate = (stateUpdate) => {
   const cityForm = document.querySelector('#filter-by-city-form');
@@ -185,6 +162,25 @@ const renderFn = () => {
   breweryListHeader();
 }
 
+// add pagination
+// const addPagination = (state) => {
+//   if(state.breweries.length > 10){
+//     console.log('me');
+//     const main = document.querySelector('main');
+//     const paginationDiv = document.createElement('div');
+//     paginationDiv.classList.add('pagination')
+//     const paginationUl = document.createElement('ul');
+//     paginationUl.classList.add('pagi-group');
+//     paginationDiv.append(paginationUl);
+//     main.append(paginationDiv);
+//     paginationUl.innerHTML = `
+//       <li>1</li>
+//       <li>2</li>
+//       <li>3</li>
+//     `
+//   }
+// }
+
 // get user search value
 const getSearchValue = (stateUpdate) => {
   const searchForm = document.querySelector('#search-breweries-form');
@@ -293,6 +289,7 @@ const updatedState = (newState,state) => {
     listenToFilterByType(state)
     listenToFilterByCity(state)
     getSearchValue(state)
+    addPagination(state)
     
   }else{
     renderFn();
@@ -301,6 +298,7 @@ const updatedState = (newState,state) => {
     listenToFilterByType(state)
     listenToFilterByCity(state)
     getSearchValue(state)
+    addPagination(state)
   }
   
 }
