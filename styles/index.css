@@ -44,7 +44,8 @@ main {
   grid-template-areas:
     "sidebar title"
     "sidebar search-bar"
-    "sidebar article";
+    "sidebar article"
+    "sidebar pagination";
   grid-template-columns: 1fr 3fr;
   grid-template-rows: auto auto 1fr;
 }
@@ -229,4 +230,21 @@ article {
   text-align: center;
   text-decoration: none;
   font-weight: bold;
+}
+
+.pagination{
+  grid-area: pagination;
+  margin-bottom: 4rem;
+}
+
+.pagi-group{
+  list-style: none;
+  display: flex;
+}
+
+.pagi-group li{
+  border: 1px solid #000;
+  margin-left: 2rem;
+  padding: 1rem;
+  cursor: pointer;
 }
