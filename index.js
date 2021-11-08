@@ -29,7 +29,7 @@ const emptyList = () => {
   }
 }
 
-// repeated city filter
+// update city form===========================
 const cityFormUpdate = (stateUpdate) => {
   const cityForm = document.querySelector('#filter-by-city-form');
   for(let i=0; i<stateUpdate.cities.length; i++){
@@ -48,8 +48,7 @@ const cityFormUpdate = (stateUpdate) => {
   return cityForm
 }
 
-
-// repeated function list
+// update list =================================
 const listUpdate = (stateUpdate) => {
   const listContainer = document.querySelector('.breweries-list');
   listContainer.innerHTML = stateUpdate.breweries.map(eachBrew => 
@@ -73,15 +72,13 @@ const listUpdate = (stateUpdate) => {
 }
 
 
-
 // set attributes function=================
 const setAttributesFn = (el, attrs) => {
   for(var key in attrs) {
     el.setAttribute(key, attrs[key]);
     }
 }
-
-// Display filter header==================
+// Display filter header section(html)==================
 const cityHeaderDisplay = (aside) => {
   const filterCityDiv = document.createElement('div');
   filterCityDiv.classList.add('filter-by-city-heading');
@@ -95,10 +92,8 @@ const cityHeaderDisplay = (aside) => {
   cityForm.setAttribute('id', 'filter-by-city-form');
   aside.append(filterCityDiv,cityForm);
 }
-
-
-// Display title===================
-const titleDisplay = (main) =>{
+// Display filter form (html)===================
+const formDisplay = (main) =>{
   const aside = document.createElement('aside');
   aside.classList.add('filters-section');
   main.append(aside);
@@ -136,7 +131,7 @@ const titleDisplay = (main) =>{
   cityHeaderDisplay(aside)
 }
 
-
+// Display breewery list header (html)==================
 const breweryListHeader = () => {
   const main = document.querySelector('main');
   const h1 = document.createElement('h1');
@@ -155,12 +150,10 @@ const breweryListHeader = () => {
   breweriesList.classList.add('breweries-list');
   article.appendChild(breweriesList);
   main.append(h1,header,article);
-  titleDisplay(main);
+  formDisplay(main);
 }
 
-const renderFn = () => {
-  breweryListHeader();
-}
+
 
 // add pagination
 // const addPagination = (state) => {
@@ -181,7 +174,7 @@ const renderFn = () => {
 //   }
 // }
 
-// get user search value
+// get user search value==================================
 const getSearchValue = (stateUpdate) => {
   const searchForm = document.querySelector('#search-breweries-form');
   const searchInput = searchForm.querySelector('#search-breweries');
@@ -217,10 +210,8 @@ const clearFilter = (stateUpdate,target) => {
 }
 
 
-
-
-let array =[]
 // filter by city =====================================
+let array =[]
 const filterByCity = (valueCity,stateUpdate,target) => {
   stateUpdate.breweries.filter(brewType => {
     if(brewType.city === valueCity){
@@ -234,9 +225,7 @@ const filterByCity = (valueCity,stateUpdate,target) => {
   clearFilter(stateUpdate,target);
 }
 
-
-
-// listen to filter by city
+// listen to filter by city=============================
 const listenToFilterByCity = (stateUpdate) => {
   var checkboxes = document.querySelectorAll("input[type=checkbox]");
   checkboxes.forEach(checkbox => {
@@ -249,7 +238,6 @@ const listenToFilterByCity = (stateUpdate) => {
     });
   })
 }
-
 
 // filter by type data=====================================
 const filterByType = (valueType,stateUpdate) => {
@@ -275,6 +263,16 @@ const listenToFilterByType = (stateUpdate) => {
   });
 }
 
+// render function
+const renderFn = (state) => {
+  breweryListHeader();
+  listUpdate(state);
+  cityFormUpdate(state);
+  listenToFilterByType(state)
+  listenToFilterByCity(state)
+  getSearchValue(state)
+}
+
 
 // update state======================================
 const updatedState = (newState,state) => {
@@ -283,24 +281,12 @@ const updatedState = (newState,state) => {
   const main = document.querySelector('main');
   if(main.innerHTML !== ''){
     emptyMain();
-    renderFn();
-    listUpdate(state);
-    cityFormUpdate(state);
-    listenToFilterByType(state)
-    listenToFilterByCity(state)
-    getSearchValue(state)
-    addPagination(state)
-    
+    renderFn(state);
+    // addPagination(state)
   }else{
-    renderFn();
-    listUpdate(state);
-    cityFormUpdate(state);
-    listenToFilterByType(state)
-    listenToFilterByCity(state)
-    getSearchValue(state)
-    addPagination(state)
+    renderFn(state);
+    // addPagination(state)
   }
-  
 }
 
 // create new state==================================
@@ -319,7 +305,7 @@ const createNewState = (breweryArr,value,cities) =>{
   updatedState(newState,value);
 }
 
-// create city array & create new state ===============
+// create city array==============================
 const createCityArr = (breweryArr, value) => {
   const cities = breweryArr.map(brew => {
     return brew.city
