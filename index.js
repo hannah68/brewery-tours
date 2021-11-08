@@ -1,4 +1,4 @@
-let state = {
+let UsState = {
   selectStateInput: "",
   breweries: [],
   cities: [],
@@ -9,13 +9,13 @@ let state = {
   }
 };
 
-
+const main = document.querySelector('main');
 const userInput = document.querySelector('input');
+
 let brewType = ['micro','brewpub','regional'];
 
 // empty main display======================
 const emptyMain = () => {
-  const main = document.querySelector('main');
   main.innerHTML = '';
 }
 
@@ -23,29 +23,9 @@ const emptyMain = () => {
 const emptyList = () => {
   const breweriesList = document.querySelector('.breweries-list');
   const list = breweriesList.querySelectorAll('li');
-
   for(let i=0; i<list.length; i++){
     list[i].remove();
   }
-}
-
-// update city form===========================
-const cityFormUpdate = (stateUpdate) => {
-  const cityForm = document.querySelector('#filter-by-city-form');
-  for(let i=0; i<stateUpdate.cities.length; i++){
-    const input = document.createElement('input');
-    const label = document.createElement('label');
-    label.innerText = stateUpdate.cities[i];
-    label.setAttribute('for', stateUpdate.cities[i]);
-    let inputObj ={
-      type: 'checkbox',
-      name: stateUpdate.cities[i],
-      value: stateUpdate.cities[i]
-    }
-    setAttributesFn(input,inputObj);
-    cityForm.append(input,label);
-  }
-  return cityForm
 }
 
 // update list =================================
@@ -71,8 +51,26 @@ const listUpdate = (stateUpdate) => {
   `).join('');
 }
 
+// update city form ===========================
+const cityFormUpdate = (stateUpdate) => {
+  const cityForm = document.querySelector('#filter-by-city-form');
 
-// set attributes function=================
+  let uniqueCity = [...new Set(stateUpdate.cities)];
+  uniqueCity.map(city => {
+    const input = document.createElement('input');
+    const label = document.createElement('label');
+    label.innerText = city;
+    label.setAttribute('for', city);
+    let inputObj ={
+      type: 'checkbox',
+      name: city,
+      value:city
+    }
+    setAttributesFn(input,inputObj);
+    cityForm.append(input,label);
+  })
+}
+// set attributes function (html)=================
 const setAttributesFn = (el, attrs) => {
   for(var key in attrs) {
     el.setAttribute(key, attrs[key]);
@@ -133,7 +131,6 @@ const formDisplay = (main) =>{
 
 // Display breewery list header (html)==================
 const breweryListHeader = () => {
-  const main = document.querySelector('main');
   const h1 = document.createElement('h1');
   h1.innerText = 'List of Breweries';
   const header = document.createElement('header');
@@ -159,7 +156,6 @@ const breweryListHeader = () => {
 // const addPagination = (state) => {
 //   if(state.breweries.length > 10){
 //     console.log('me');
-//     const main = document.querySelector('main');
 //     const paginationDiv = document.createElement('div');
 //     paginationDiv.classList.add('pagination')
 //     const paginationUl = document.createElement('ul');
@@ -174,6 +170,19 @@ const breweryListHeader = () => {
 //   }
 // }
 
+// show result of search
+const showResultOfSearch = (stateUpdate,value) => {
+  const filteredSearch = stateUpdate.breweries.filter(eachBrew => {
+    if(eachBrew.city.toLowerCase() === value || eachBrew.name.toLowerCase() === value){
+      return eachBrew
+    }
+  })
+  let newState = {
+    breweries: filteredSearch, 
+  };
+  listUpdate(newState);
+}
+
 // get user search value==================================
 const getSearchValue = (stateUpdate) => {
   const searchForm = document.querySelector('#search-breweries-form');
@@ -184,15 +193,7 @@ const getSearchValue = (stateUpdate) => {
       emptyList();
       if(e.key === "Enter"){
         const value = e.target.value.toLowerCase();
-        const filteredSearch = stateUpdate.breweries.filter(eachBrew => {
-          if(eachBrew.city.toLowerCase() === value || eachBrew.name.toLowerCase() === value){
-            return eachBrew
-          }
-        })
-        let newState = {
-          breweries: filteredSearch, 
-        };
-        listUpdate(newState);
+        showResultOfSearch(stateUpdate,value)
       }
     })
   })
@@ -201,7 +202,7 @@ const getSearchValue = (stateUpdate) => {
 // clear all filters==================================
 const clearFilter = (stateUpdate,target) => {
   const clearBtn = document.querySelector('.clear-all-btn');
-  clearBtn.addEventListener('click', (e) => {
+  clearBtn.addEventListener('click', () => {
     if(target){
       target.checked = false;
     }
@@ -225,15 +226,31 @@ const filterByCity = (valueCity,stateUpdate,target) => {
   clearFilter(stateUpdate,target);
 }
 
+// remove unchecked item from list======================
+function removeUncheckedValue(valueCity){
+  const unCheckedIndex = array.findIndex(el => {
+    return el.city === valueCity
+  })
+  array.splice(unCheckedIndex,1);
+  let newState = {
+    breweries: array, 
+  };
+  listUpdate(newState);
+  // clearFilter(stateUpdate,target);
+}
+
 // listen to filter by city=============================
 const listenToFilterByCity = (stateUpdate) => {
   var checkboxes = document.querySelectorAll("input[type=checkbox]");
   checkboxes.forEach(checkbox => {
     checkbox.addEventListener('change', (e) => {
+      let target = e.target;
+      let valueCity = e.target.value;
       if (e.target.checked) {
-        let target = e.target;
-        let valueCity = e.target.value;
         filterByCity(valueCity,stateUpdate,target);
+      }
+      if(!e.target.checked){
+        removeUncheckedValue(valueCity);
       }
     });
   })
@@ -275,16 +292,16 @@ const renderFn = (state) => {
 
 
 // update state======================================
-const updatedState = (newState,state) => {
-  state = {...state, ...newState};
-  console.log('updated state:', state);
-  const main = document.querySelector('main');
+const updatedState = (newState,UsState) => {
+  UsState = {...UsState, ...newState};
+  console.log('updated state:', UsState);
+  
   if(main.innerHTML !== ''){
     emptyMain();
-    renderFn(state);
+    renderFn(UsState);
     // addPagination(state)
   }else{
-    renderFn(state);
+    renderFn(UsState);
     // addPagination(state)
   }
 }
@@ -296,13 +313,8 @@ const createNewState = (breweryArr,value,cities) =>{
     breweries: breweryArr,
     cities: cities,
     brewTypes: brewType,
-    filters: {
-      type: "",
-      city: [],
-      search: ""
-    }
   };
-  updatedState(newState,value);
+  updatedState(newState,UsState);
 }
 
 // create city array==============================
