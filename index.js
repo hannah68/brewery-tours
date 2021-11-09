@@ -385,14 +385,13 @@ const fetchDataForUser = (value) => {
 const getUserInput = () => {
   userInput.value = '';
   const form = document.querySelector('#select-state-form');
+  const input = document.querySelector('#select-state');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-    userInput.addEventListener('keyup', e => {
-      if(e.key === "Enter"){
-        const value = e.target.value.toLowerCase();
-        fetchDataForUser(value);
-      }
-    })
+    let value = input.value.toLowerCase();
+    console.log(value);
+    fetchDataForUser(value);
+    input.value = '';
   })
 }
 
