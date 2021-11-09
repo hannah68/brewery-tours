@@ -232,19 +232,18 @@ article {
   font-weight: bold;
 }
 
-.pagination{
+.btn-container{
   grid-area: pagination;
+  display: flex;
+  padding: 1rem 2rem;
   margin-bottom: 4rem;
 }
 
-.pagi-group{
-  list-style: none;
-  display: flex;
+.btn-container .btn{
+  cursor: pointer;
+  margin-right: 1rem;
 }
 
-.pagi-group li{
-  border: 1px solid #000;
-  margin-left: 2rem;
-  padding: 1rem;
-  cursor: pointer;
+.btn-container .btn.active{
+  background-color:lightblue;
 }

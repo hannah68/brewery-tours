@@ -149,28 +149,59 @@ const breweryListHeader = () => {
   main.append(h1,header,article);
   formDisplay(main);
 }
+// =====================================================
+let currentPage = 1;
+let row = 10;
 
+// add pagination======================================
+const addPagination = (state) => {
+  let breweriesArr = state.breweries
+  setupPagination(breweriesArr,row);
+}
 
+// setup Pagination =======================================================
+const setupPagination = (breweriesArr,rowsPerPage) =>{
+  let pageCount = Math.ceil(breweriesArr.length/rowsPerPage);
+  let buttonContainer = document.createElement('div');
+  buttonContainer.classList.add('btn-container');
+  main.append(buttonContainer);
+  for(let i=1; i<pageCount + 1; i++){
+    let btn = paginationButton(i,breweriesArr);
+    buttonContainer.append(btn);
+  }
+}
 
-// add pagination
-// const addPagination = (state) => {
-//   if(state.breweries.length > 10){
-//     console.log('me');
-//     const paginationDiv = document.createElement('div');
-//     paginationDiv.classList.add('pagination')
-//     const paginationUl = document.createElement('ul');
-//     paginationUl.classList.add('pagi-group');
-//     paginationDiv.append(paginationUl);
-//     main.append(paginationDiv);
-//     paginationUl.innerHTML = `
-//       <li>1</li>
-//       <li>2</li>
-//       <li>3</li>
-//     `
-//   }
-// }
+// create pagination Button==============================================
+const paginationButton = (page,breweriesArr) =>{
+  let button = document.createElement('button');
+  button.classList.add('btn');
+  button.innerText = page;
+  if(currentPage === page){
+    button.classList.add('active');
+  }
+  displayList(breweriesArr,currentPage,row);
+  button.addEventListener('click', () => {
+    currentPage = page
+    displayList(breweriesArr,currentPage,row);
+    let currentBtn = document.querySelector('.btn-container button.active');
+    currentBtn.classList.remove('active');
+    button.classList.add('active');
+  })
+  return button;
+}
+// display list after pagination=======================================
+const displayList = (items,page,rowsPerPage) =>{
+  page--;
+  let start = rowsPerPage * page;
+  let end = start + rowsPerPage;
+  let paginatedItems = items.slice(start,end);
+  let newState = {
+    breweries: paginatedItems,
+  };
+  listUpdate(newState);
+}
 
-// show result of search
+// show result of search=========================================
 const showResultOfSearch = (stateUpdate,value) => {
   const filteredSearch = stateUpdate.breweries.filter(eachBrew => {
     if(eachBrew.city.toLowerCase() === value || eachBrew.name.toLowerCase() === value){
@@ -280,16 +311,23 @@ const listenToFilterByType = (stateUpdate) => {
   });
 }
 
-// render function
+// render function=================================
 const renderFn = (state) => {
   breweryListHeader();
-  listUpdate(state);
-  cityFormUpdate(state);
-  listenToFilterByType(state)
-  listenToFilterByCity(state)
-  getSearchValue(state)
+  if(state.breweries.length > 10){
+    addPagination(state)
+    cityFormUpdate(state);
+    listenToFilterByType(state)
+    listenToFilterByCity(state)
+    getSearchValue(state)
+  }else{
+    listUpdate(state);
+    cityFormUpdate(state);
+    listenToFilterByType(state)
+    listenToFilterByCity(state)
+    getSearchValue(state)
+  }
 }
-
 
 // update state======================================
 const updatedState = (newState,UsState) => {
@@ -299,10 +337,8 @@ const updatedState = (newState,UsState) => {
   if(main.innerHTML !== ''){
     emptyMain();
     renderFn(UsState);
-    // addPagination(state)
   }else{
     renderFn(UsState);
-    // addPagination(state)
   }
 }
 
