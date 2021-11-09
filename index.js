@@ -383,7 +383,6 @@ const fetchDataForUser = (value) => {
 
 // Get user input================================
 const getUserInput = () => {
-  userInput.value = '';
   const form = document.querySelector('#select-state-form');
   const input = document.querySelector('#select-state');
   form.addEventListener('submit', (e) => {
